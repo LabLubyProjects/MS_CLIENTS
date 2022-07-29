@@ -16,6 +16,8 @@ model Status {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   Client     Client[]
+
+  @@map("status")
 }
 
 model Client {
@@ -26,12 +28,14 @@ model Client {
   phone           String
   email           String   @unique
   average_salary  Decimal
-  address_id      Address  @relation(fields: [addressId], references: [id])
+  address         Address  @relation(fields: [addressId], references: [id])
   status          Status   @relation(fields: [statusId], references: [id])
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
   statusId        Int
   addressId       String
+
+  @@map("clients")
 }
 
 model Address {
@@ -40,4 +44,6 @@ model Address {
   state   String
   zipcode String
   Client  Client[]
+
+  @@map("address")
 }

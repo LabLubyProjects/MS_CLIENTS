@@ -1,3 +1,6 @@
-import App from './http/app';
+import App from "./http/app";
+import dotenv from "dotenv";
 
-new App().run(3000);
+dotenv.config();
+
+new App().run(Number(process.env.PORT) || 3000);

@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 
 export default class App {
   server: express.Application;
@@ -9,6 +9,6 @@ export default class App {
   }
 
   run(port: number) {
-    this.server.listen(port, () => console.log('Listening on port ' + port));
+    this.server.listen(port, () => console.log("Listening on port " + port));
   }
 }

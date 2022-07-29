@@ -6,6 +6,9 @@
   "scripts": {
     "start:dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only --ignore-watch node_modules 'src/server.ts'"
   },
+  "prisma": {
+    "seed": "ts-node-dev --transpile-only prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/express": "^4.17.13",
     "@types/kafkajs": "^1.9.0",

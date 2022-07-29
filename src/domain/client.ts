@@ -8,6 +8,7 @@ export enum ClientStatus {
 
 export interface ClientRepository {
   store(client: Client): Promise<Client>;
+  // findByEmail(clientEmail: string): Promise<Client>;
   index(): Promise<Client[]>;
 }
 

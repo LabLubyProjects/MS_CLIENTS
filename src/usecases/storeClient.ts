@@ -6,7 +6,7 @@ export default class StoreUser {
     await kafkaConsumer.subscribe({ topic: "store-client" });
     await kafkaConsumer.run({
       eachMessage: async ({ message }) => {
-        const body = 
+        const body = JSON.parse(message.value!.toString());
       },
     });
   }

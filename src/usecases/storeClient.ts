@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Client, { ClientStatus } from "@src/domain/client";
+import { produce } from "@src/messaging/kafka";
 import axios from "axios";
 import UseCase from "./UseCase";
 
@@ -73,8 +74,21 @@ export default class StoreClient implements UseCase {
       },
     });
 
-    axios.put(`${process.env.LUBY_CASH_BASE_URL}/clients/${newClient.id}`, {
-      clientStatus: valueOfNewClientStatus?.value,
-    });
+    const response = await axios.put(
+      `${process.env.LUBY_CASH_BASE_URL}/clients/${newClient.id}`,
+      {
+        clientStatus: valueOfNewClientStatus?.value,
+      }
+    );
+
+    if (response.status === 200)
+      await produce(
+        {
+          name: domainClient.fullName,
+          email: domainClient.email,
+          status: valueOfNewClientStatus?.value,
+        },
+        "new-clients"
+      );
   }
 }

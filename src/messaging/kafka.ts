@@ -7,6 +7,7 @@ const kafka = new Kafka({
 });
 
 export const kafkaConsumer = kafka.consumer({ groupId: "clients" });
+export const kafkaProducer = kafka.producer();
 
 export async function consume(useCase: UseCase, ...topics: string[]) {
   await kafkaConsumer.connect();
@@ -16,4 +17,13 @@ export async function consume(useCase: UseCase, ...topics: string[]) {
       useCase.execute(message.value?.toString()),
   });
   await kafkaConsumer.disconnect();
+}
+
+export async function produce(message: any, topic: string): Promise<void> {
+  await kafkaProducer.connect();
+  await kafkaProducer.send({
+    topic: topic,
+    messages: [{ value: JSON.stringify(message) }],
+  });
+  await kafkaProducer.disconnect();
 }

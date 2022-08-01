@@ -1,21 +1,35 @@
 import { PrismaClient } from "@prisma/client";
 import Client, { ClientStatus } from "@src/domain/client";
+import axios from "axios";
 import UseCase from "./UseCase";
 
+interface StoreClientInput {
+  id: string;
+  fullName: string;
+  cpfNumber: string;
+  currentBalance: number;
+  phone: string;
+  email: string;
+  averageSalary: number;
+  city: string;
+  state: string;
+  zipcode: string;
+}
+
 export default class StoreClient implements UseCase {
-  public async execute(clientData: any): Promise<void> {
-    const body = JSON.parse(clientData.value!.toString());
-    const prisma = new PrismaClient({});
-    const client = await prisma.client.findUnique({
+  public async execute(clientData: string): Promise<void> {
+    const body: StoreClientInput = JSON.parse(clientData);
+    const prisma = new PrismaClient();
+    const client = await prisma.client.findFirst({
       where: {
-        email: body.email,
-        cpf_number: body.cpfNumber,
+        OR: [{ email: body.email }, { cpf_number: body.cpfNumber }],
       },
     });
 
     if (client) return;
 
     const domainClient = new Client(
+      body.id,
       body.fullName,
       body.cpfNumber,
       body.currentBalance,
@@ -27,7 +41,7 @@ export default class StoreClient implements UseCase {
 
     const [, APPROVED, DISAPPROVED] = await prisma.status.findMany();
 
-    await prisma.client.create({
+    const newClient = await prisma.client.create({
       data: {
         id: domainClient.id,
         full_name: domainClient.fullName,
@@ -51,6 +65,16 @@ export default class StoreClient implements UseCase {
           },
         },
       },
+    });
+
+    const valueOfNewClientStatus = await prisma.status.findUnique({
+      where: {
+        id: newClient.statusId,
+      },
+    });
+
+    axios.put(`${process.env.LUBY_CASH_BASE_URL}/clients/${newClient.id}`, {
+      clientStatus: valueOfNewClientStatus?.value,
     });
   }
 }

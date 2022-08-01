@@ -12,7 +12,8 @@ export async function consume(useCase: UseCase, ...topics: string[]) {
   await kafkaConsumer.connect();
   await kafkaConsumer.subscribe({ topics });
   await kafkaConsumer.run({
-    eachMessage: async ({ message }) => useCase.execute(message),
+    eachMessage: async ({ message }) =>
+      useCase.execute(message.value?.toString()),
   });
   await kafkaConsumer.disconnect();
 }

@@ -1,15 +1,9 @@
-import FindAllClients from "@src/usecases/findAllClients";
 import FindClientByID from "@src/usecases/findClientByID";
 import DeleteClient from "@src/usecases/deleteClient";
 import { Router, Request, Response } from "express";
 import PerformTransaction from "@src/usecases/performTransaction";
 
 const router: Router = Router();
-
-router.get("/clients", async (req: Request, res: Response) => {
-  const findAllClientsUseCaseResult = await new FindAllClients().execute();
-  return res.json(findAllClientsUseCaseResult);
-});
 
 router.get("/clients/:id", async (req: Request, res: Response) => {
   const clientId = req.params.id;

@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma/prisma";
 import Client, { ClientStatus } from "@src/domain/client";
 import { produce } from "@src/messaging/kafka";
-import axios from "axios";
 import UseCase from "./UseCase";
 
 interface StoreClientInput {
@@ -20,7 +19,6 @@ interface StoreClientInput {
 export default class StoreClient implements UseCase {
   public async execute(clientData: string): Promise<void> {
     const body: StoreClientInput = JSON.parse(clientData);
-    const prisma = new PrismaClient();
     const client = await prisma.client.findFirst({
       where: {
         OR: [{ email: body.email }, { cpf_number: body.cpfNumber }],
@@ -40,7 +38,17 @@ export default class StoreClient implements UseCase {
       ClientStatus.PENDING
     );
 
-    const [, APPROVED, DISAPPROVED] = await prisma.status.findMany();
+    const APPROVED = await prisma.status.findUnique({
+      where: {
+        value: "approved",
+      },
+    });
+
+    const DISAPPROVED = await prisma.status.findUnique({
+      where: {
+        value: "disapproved",
+      },
+    });
 
     const newClient = await prisma.client.create({
       data: {
@@ -55,15 +63,17 @@ export default class StoreClient implements UseCase {
         status: {
           connect:
             domainClient.status === ClientStatus.APPROVED
-              ? APPROVED
-              : DISAPPROVED,
+              ? { id: APPROVED!.id }
+              : { id: DISAPPROVED!.id },
         },
-        address: {
-          create: {
-            city: body.city,
-            state: body.state,
-            zipcode: body.zipcode,
-          },
+        addresses: {
+          create: [
+            {
+              city: body.city,
+              state: body.state,
+              zipcode: body.zipcode,
+            },
+          ],
         },
       },
     });
@@ -74,21 +84,22 @@ export default class StoreClient implements UseCase {
       },
     });
 
-    const response = await axios.put(
-      `${process.env.LUBY_CASH_BASE_URL}/clients/${newClient.id}`,
+    await produce(
       {
-        clientStatus: valueOfNewClientStatus?.value,
-      }
+        userId: domainClient.id,
+        statusValue: valueOfNewClientStatus?.value,
+      },
+      "update-client-status"
     );
 
-    if (response.status === 200)
-      await produce(
-        {
-          name: domainClient.fullName,
-          email: domainClient.email,
-          status: valueOfNewClientStatus?.value,
-        },
-        "new-clients"
-      );
+    await produce(
+      {
+        id: domainClient.id,
+        name: domainClient.fullName,
+        email: domainClient.email,
+        status: valueOfNewClientStatus?.value,
+      },
+      "new-clients"
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma/prisma";
 import UseCase from "./UseCase";
 
 interface UpdateClientInput {
@@ -17,9 +17,8 @@ interface UpdateClientInput {
 export default class UpdateClient implements UseCase {
   public async execute(clientData: string): Promise<void> {
     const body: UpdateClientInput = JSON.parse(clientData);
-    const prisma = new PrismaClient();
 
-    await prisma.client.update({
+    const clientUpdate = prisma.client.update({
       where: {
         id: body.id,
       },
@@ -31,14 +30,22 @@ export default class UpdateClient implements UseCase {
         phone: body.phone,
         email: body.email,
         average_salary: body.averageSalary,
-        address: {
-          update: {
-            city: body.city,
-            state: body.state,
-            zipcode: body.zipcode,
-          },
-        },
       },
     });
+
+    const addressUpdate = prisma.address.updateMany({
+      where: {
+        city: body.city,
+        state: body.state,
+        zipcode: body.zipcode,
+      },
+      data: {
+        city: body.city,
+        state: body.state,
+        zipcode: body.zipcode,
+      },
+    });
+
+    await prisma.$transaction([clientUpdate, addressUpdate]);
   }
 }

@@ -9,6 +9,8 @@ export default class App {
   }
 
   run(port: number) {
-    this.server.listen(port, () => console.log("Listening on port " + port));
+    return this.server.listen(port, () =>
+      console.log("Listening on port " + port)
+    );
   }
 }

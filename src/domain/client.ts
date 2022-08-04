@@ -17,10 +17,10 @@ export default class Client {
     public averageSalary: number,
     public status?: ClientStatus
   ) {
-    this.canBeApproved();
+    this.analyzeProfileSetStatus();
   }
 
-  public canBeApproved() {
+  public analyzeProfileSetStatus() {
     this.status =
       this.averageSalary >= 500
         ? ClientStatus.APPROVED

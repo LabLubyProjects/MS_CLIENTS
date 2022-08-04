@@ -1,15 +1,14 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma/prisma";
 import UseCase from "./UseCase";
 
 export default class FindClientByID implements UseCase {
   async execute(id: string) {
-    const prisma = new PrismaClient();
     const client = await prisma.client.findUnique({
       where: {
         id,
       },
       include: {
-        address: true,
+        addresses: true,
       },
     });
     return client;

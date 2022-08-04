@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma/prisma";
 import UseCase from "./UseCase";
 
 interface PerformTransactionInput {
@@ -10,7 +10,6 @@ interface PerformTransactionInput {
 export default class PerformTransaction implements UseCase {
   async execute(transactionData: string) {
     const input: PerformTransactionInput = JSON.parse(transactionData);
-    const prisma = new PrismaClient();
     const source = await prisma.client.findUnique({
       where: { id: input.sourceUserId },
     });
@@ -29,7 +28,9 @@ export default class PerformTransaction implements UseCase {
           id: input.sourceUserId,
         },
         data: {
-          current_balance: Number(source.current_balance) - input.amount,
+          current_balance: {
+            decrement: input.amount,
+          },
         },
       });
 
@@ -38,7 +39,9 @@ export default class PerformTransaction implements UseCase {
           id: input.targetUserId,
         },
         data: {
-          current_balance: Number(source.current_balance) + input.amount,
+          current_balance: {
+            increment: input.amount,
+          },
         },
       });
 

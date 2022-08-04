@@ -1,13 +1,22 @@
 import App from "./http/app";
 import dotenv from "dotenv";
-import { consume } from "./messaging/kafka";
-import StoreClient from "./usecases/storeClient";
-import DeleteClient from "./usecases/deleteClient";
-import UpdateClient from "./usecases/updateClient";
+import { consume, KafkaSingleton } from "./messaging/kafka";
 
 dotenv.config();
 
-consume(new StoreClient(), "store-client");
-consume(new DeleteClient(), "delete-client");
-consume(new UpdateClient(), "update-client");
-new App().run(Number(process.env.PORT) || 3000);
+consume(["store-client", "delete-client", "update-client"]);
+const server = new App().run(Number(process.env.PORT) || 3000);
+
+process.on("SIGTERM", () => {});
+
+(async (): Promise<void> => {
+  const exitSignals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGQUIT"];
+  exitSignals.map((sig) =>
+    process.on(sig, async () => {
+      server.close(() => {
+        console.log("Express Server Closed");
+      });
+      await KafkaSingleton.shutdown();
+    })
+  );
+})();

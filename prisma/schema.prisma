@@ -21,29 +21,29 @@ model Status {
 }
 
 model Client {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   full_name       String
-  cpf_number      String   @unique
+  cpf_number      String    @unique
   current_balance Decimal
   phone           String
-  email           String   @unique
+  email           String    @unique
   average_salary  Decimal
-  address         Address  @relation(fields: [addressId], references: [id])
-  status          Status   @relation(fields: [statusId], references: [id])
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  addresses       Address[]
+  status          Status    @relation(fields: [statusId], references: [id])
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
   statusId        Int
-  addressId       String
 
   @@map("clients")
 }
 
 model Address {
-  id      String   @id @default(uuid())
-  city    String
-  state   String
-  zipcode String
-  Client  Client[]
+  id       String @id @default(uuid())
+  city     String
+  state    String
+  zipcode  String
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
 
   @@map("address")
 }

@@ -1,38 +1,37 @@
 version: '3.8'
 
 services:
-  database_clients:
-    container_name: database_clients
+  databaseclients:
     platform: linux/x86_64
     image: mysql:8
     ports:
-        - "33062:3307"
+        - "33062:3306"
     restart: always
     environment:
-      - MYSQL_TCP_PORT=3007
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
     networks:
       - prova
 
   clients:
     image: ms_clients
+    container_name: clients
     depends_on:
-      - "database_clients"
+      - "databaseclients"
     build: .
     ports: 
       - '4000:4000'
     volumes:
       - .:/app
     restart: on-failure
+    networks:
+      - prova
     environment:
-      - DATABASE_URL=mysql://root:@database_clients:3307/ms_clients?connect_timeout=300
+      - DATABASE_URL=mysql://root:provams@databaseclients:3306/ms_clients?connect_timeout=60&pool_timeout=30&socket_timeout=30
       - PORT=4000
       - LUBY_CASH_BASE_URL=http://app:3333/api/v1
       - KAFKA_CONNECTION=kafka:29092
     links:
-      - database_clients
-    networks:
-      - prova
+      - databaseclients
   
 networks:
   prova:

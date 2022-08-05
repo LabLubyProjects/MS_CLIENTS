@@ -1,5 +1,4 @@
 import FindClientByID from "@src/usecases/findClientByID";
-import DeleteClient from "@src/usecases/deleteClient";
 import { Router, Request, Response } from "express";
 import PerformTransaction from "@src/usecases/performTransaction";
 
@@ -24,14 +23,6 @@ router.post("/transaction", async (req: Request, res: Response) => {
   return res
     .status(201)
     .json({ message: "Transaction completed successfully" });
-});
-
-router.delete("/clients/:id", async (req: Request, res: Response) => {
-  const clientId = req.params.id;
-  const deletedUser = await new DeleteClient().execute(clientId);
-  if (!deletedUser)
-    return res.status(404).json({ message: "Client not found" });
-  return res.json(deletedUser);
 });
 
 export default router;

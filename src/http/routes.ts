@@ -13,7 +13,7 @@ router.get("/clients/:id", async (req: Request, res: Response) => {
 });
 
 router.post("/transaction", async (req: Request, res: Response) => {
-  const transactionBody = req.body();
+  const transactionBody = req.body;
   const resultOfTransaction = await new PerformTransaction().execute(
     JSON.stringify(transactionBody)
   );
@@ -21,7 +21,9 @@ router.post("/transaction", async (req: Request, res: Response) => {
   if (!resultOfTransaction)
     return res.status(400).json({ message: "Transaction failed" });
 
-  return res.json({ message: "Transaction completed successfully" });
+  return res
+    .status(201)
+    .json({ message: "Transaction completed successfully" });
 });
 
 router.delete("/clients/:id", async (req: Request, res: Response) => {
@@ -31,3 +33,5 @@ router.delete("/clients/:id", async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Client not found" });
   return res.json(deletedUser);
 });
+
+export default router;

@@ -1,4 +1,5 @@
 import express from "express";
+import router from "./routes";
 
 export default class App {
   server: express.Application;
@@ -6,6 +7,7 @@ export default class App {
   constructor() {
     this.server = express();
     this.server.use(express.json());
+    this.server.use(router);
   }
 
   run(port: number) {

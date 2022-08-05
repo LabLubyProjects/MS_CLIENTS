@@ -4,9 +4,11 @@ import UpdateClient from "@src/usecases/updateClient";
 import UseCase from "@src/usecases/UseCase";
 import { Consumer, Kafka, Producer } from "kafkajs";
 
+let subscribedTopics: string[] = [];
+
 const kafka = new Kafka({
   clientId: "ms_clients",
-  brokers: ["localhost:9092"],
+  brokers: [`${process.env.KAFKA_CONNECTION}`],
 });
 
 export class KafkaSingleton {
@@ -31,6 +33,7 @@ export class KafkaSingleton {
     if (this._consumer) {
       await this._consumer.disconnect();
       this._consumer = null;
+      subscribedTopics = [];
     }
     if (this._producer) {
       await this._producer.disconnect();
@@ -39,9 +42,18 @@ export class KafkaSingleton {
   }
 }
 
+function isAlreadySubscribed(topic: string): boolean {
+  return subscribedTopics.includes(topic);
+}
+
 export async function consume(topics: string[]) {
   const consumer = await KafkaSingleton.getConsumer();
-  await consumer.subscribe({ topics });
+  topics.forEach((topic) => {
+    if (!isAlreadySubscribed(topic)) {
+      subscribedTopics.push(topic);
+      consumer.subscribe({ topics });
+    }
+  });
   await consumer.run({
     eachMessage: async ({ message, topic }) => {
       let useCase: UseCase;
@@ -65,6 +77,7 @@ export async function produce(message: any, topic: string): Promise<void> {
   const producer = await KafkaSingleton.getProducer();
   await producer.send({
     topic: topic,
+    acks: 0,
     messages: [{ value: JSON.stringify(message) }],
   });
 }

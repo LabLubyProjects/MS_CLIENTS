@@ -13,13 +13,11 @@ export default class PerformTransaction implements UseCase {
     const source = await prisma.client.findUnique({
       where: { id: input.sourceUserId },
     });
-
     if (!source) return false;
 
     const target = await prisma.client.findUnique({
       where: { id: input.targetUserId },
     });
-
     if (!target) return false;
 
     try {
@@ -44,7 +42,6 @@ export default class PerformTransaction implements UseCase {
           },
         },
       });
-
       await prisma.$transaction([updateSourceBalance, updateTargetBalance]);
     } catch (error) {
       return false;

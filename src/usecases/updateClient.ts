@@ -17,7 +17,6 @@ interface UpdateClientInput {
 export default class UpdateClient implements UseCase {
   public async execute(clientData: string): Promise<void> {
     const body: UpdateClientInput = JSON.parse(clientData);
-
     const clientUpdate = prisma.client.update({
       where: {
         id: body.id,
@@ -35,9 +34,7 @@ export default class UpdateClient implements UseCase {
 
     const addressUpdate = prisma.address.updateMany({
       where: {
-        city: body.city,
-        state: body.state,
-        zipcode: body.zipcode,
+        clientId: body.id,
       },
       data: {
         city: body.city,
